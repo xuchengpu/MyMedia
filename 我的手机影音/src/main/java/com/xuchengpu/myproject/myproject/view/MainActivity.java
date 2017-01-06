@@ -1,7 +1,9 @@
-package com.xuchengpu.myproject;
+package com.xuchengpu.myproject.myproject.view;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+
+import com.xuchengpu.myproject.R;
 
 /**
  * Created by 许成谱 on 2017/1/6.

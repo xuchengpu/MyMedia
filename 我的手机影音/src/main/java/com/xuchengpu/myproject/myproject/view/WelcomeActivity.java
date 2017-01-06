@@ -1,10 +1,12 @@
-package com.xuchengpu.myproject;
+package com.xuchengpu.myproject.myproject.view;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
+
+import com.xuchengpu.myproject.R;
 
 public class WelcomeActivity extends AppCompatActivity {
     private Handler handler=new Handler();

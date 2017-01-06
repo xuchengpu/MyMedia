@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:orientation="horizontal"
+    android:background="#ff3097fd"
+    android:gravity="center_vertical"
+    >
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_topbanner_logo"
+        android:layout_marginLeft="8dp"/>
+    <TextView
+        android:id="@+id/tv_search"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_weight="1"
+        android:clickable="true"
+        android:text="全网搜索..."
+        android:background="@drawable/tv_search_selector"
+        android:drawableLeft="@drawable/tv_search_drawable"
+        android:textColor="@drawable/tv_search_color"
+        android:drawablePadding="5dp"/>
+    <RelativeLayout
+        android:id="@+id/rl_game"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_gravity="center">
+        <TextView
+            android:id="@+id/tv_game"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/ic_topbanner_game"/>
+        <ImageView
+            android:id="@+id/iv_game"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:layout_alignRight="@+id/tv_game"
+            android:src="@drawable/shape_red"
+            />
+    </RelativeLayout>
+    <ImageView
+        android:id="@+id/iv_record"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:src="@drawable/ic_topbanner_record"/>
+
+
+</LinearLayout>
