@@ -28,4 +28,10 @@ public class LocalAudioFragment extends BaseFragment {
         tv.setText("本地音乐");
 
     }
+
+    @Override
+    public void refresh() {
+        super.refresh();
+        tv.setText("本地音乐刷新");
+    }
 }

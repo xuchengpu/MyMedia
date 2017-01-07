@@ -28,4 +28,10 @@ public class LocalVideoFragment extends BaseFragment {
         tv.setText("本地视频");
 
     }
+
+    @Override
+    public void refresh() {
+        super.refresh();
+        tv.setText("本地视频刷新");
+    }
 }

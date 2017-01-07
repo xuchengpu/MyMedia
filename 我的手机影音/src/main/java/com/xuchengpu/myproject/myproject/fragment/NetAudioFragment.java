@@ -25,7 +25,13 @@ public class NetAudioFragment extends BaseFragment {
     @Override
     public void initData() {
         super.initData();
-        tv.setText("网络音频");
+        tv.setText("网络音乐");
 
+    }
+
+    @Override
+    public void refresh() {
+        super.refresh();
+        tv.setText("网络音乐刷新");
     }
 }

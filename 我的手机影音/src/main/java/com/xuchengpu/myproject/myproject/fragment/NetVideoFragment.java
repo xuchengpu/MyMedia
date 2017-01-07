@@ -25,7 +25,13 @@ public class NetVideoFragment extends BaseFragment {
     @Override
     public void initData() {
         super.initData();
-        tv.setText("网络音乐");
+        tv.setText("网络视频");
 
+    }
+
+    @Override
+    public void refresh() {
+        super.refresh();
+        tv.setText("网络视频刷新");
     }
 }
