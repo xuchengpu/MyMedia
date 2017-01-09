@@ -4,26 +4,106 @@ import android.app.Activity;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.MediaController;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.xuchengpu.myproject.R;
 
-public class SystemVideoPlayer extends Activity {
+public class SystemVideoPlayer extends Activity implements View.OnClickListener {
     private VideoView videoview;
     private Uri uri;
+    private LinearLayout llTop;
+    private TextView tvName;
+    private ImageView ivBattery;
+    private TextView tvSystetime;
+    private Button btnVoice;
+    private SeekBar seekbarVoice;
+    private Button btnSwichePlayer;
+    private LinearLayout llBottom;
+    private TextView tvCurrenttime;
+    private SeekBar seekbarVideo;
+    private TextView tvDuration;
+    private Button btnExit;
+    private Button btnPre;
+    private Button btnStartPause;
+    private Button btnNext;
+    private Button btnSwichScreen;
+
+    /**
+     * Find the Views in the layout<br />
+     * <br />
+     * Auto-created on 2017-01-09 18:25:50 by Android Layout Finder
+     * (http://www.buzzingandroid.com/tools/android-layout-finder)
+     */
+    private void findViews() {
+        videoview = (VideoView) findViewById(R.id.videoview);
+        llTop = (LinearLayout)findViewById( R.id.ll_top );
+        tvName = (TextView)findViewById( R.id.tv_name );
+        ivBattery = (ImageView)findViewById( R.id.iv_battery );
+        tvSystetime = (TextView)findViewById( R.id.tv_systetime );
+        btnVoice = (Button)findViewById( R.id.btn_voice );
+        seekbarVoice = (SeekBar)findViewById( R.id.seekbar_voice );
+        btnSwichePlayer = (Button)findViewById( R.id.btn_swiche_player );
+        llBottom = (LinearLayout)findViewById( R.id.ll_bottom );
+        tvCurrenttime = (TextView)findViewById( R.id.tv_currenttime );
+        seekbarVideo = (SeekBar)findViewById( R.id.seekbar_video );
+        tvDuration = (TextView)findViewById( R.id.tv_duration );
+        btnExit = (Button)findViewById( R.id.btn_exit );
+        btnPre = (Button)findViewById( R.id.btn_pre );
+        btnStartPause = (Button)findViewById( R.id.btn_start_pause );
+        btnNext = (Button)findViewById( R.id.btn_next );
+        btnSwichScreen = (Button)findViewById( R.id.btn_swich_screen );
+
+        btnVoice.setOnClickListener( this );
+        btnSwichePlayer.setOnClickListener( this );
+        btnExit.setOnClickListener( this );
+        btnPre.setOnClickListener( this );
+        btnStartPause.setOnClickListener( this );
+        btnNext.setOnClickListener( this );
+        btnSwichScreen.setOnClickListener( this );
+    }
+
+    /**
+     * Handle button click events<br />
+     * <br />
+     * Auto-created on 2017-01-09 18:25:50 by Android Layout Finder
+     * (http://www.buzzingandroid.com/tools/android-layout-finder)
+     */
+    @Override
+    public void onClick(View v) {
+        if ( v == btnVoice ) {
+            // Handle clicks for btnVoice
+        } else if ( v == btnSwichePlayer ) {
+            // Handle clicks for btnSwichePlayer
+        } else if ( v == btnExit ) {
+            // Handle clicks for btnExit
+        } else if ( v == btnPre ) {
+            // Handle clicks for btnPre
+        } else if ( v == btnStartPause ) {
+            // Handle clicks for btnStartPause
+        } else if ( v == btnNext ) {
+            // Handle clicks for btnNext
+        } else if ( v == btnSwichScreen ) {
+            // Handle clicks for btnSwichScreen
+        }
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_system_video_player);
-        videoview = (VideoView)findViewById(R.id.videoview);
+        findViews();
         getData();
-        //设置视频加载的监听        setData();
+        setData();
         setLinstener();
-
-
     }
 
     private void setLinstener() {
@@ -38,7 +118,7 @@ public class SystemVideoPlayer extends Activity {
     }
 
     private void getData() {
-        uri=getIntent().getData();
+        uri = getIntent().getData();
     }
 
     private class MyOnPreparedListener implements MediaPlayer.OnPreparedListener {
@@ -50,7 +130,8 @@ public class SystemVideoPlayer extends Activity {
 
     private class MyOnErrorListener implements MediaPlayer.OnErrorListener {
         @Override
-        public boolean onError(MediaPlayer mp, int what, int extra) {            Toast.makeText(SystemVideoPlayer.this,"播放出错",Toast.LENGTH_SHORT).show();
+        public boolean onError(MediaPlayer mp, int what, int extra) {
+            Toast.makeText(SystemVideoPlayer.this, "播放出错", Toast.LENGTH_SHORT).show();
             return false;
         }
     }
@@ -58,7 +139,7 @@ public class SystemVideoPlayer extends Activity {
     private class MyOnCompletionListener implements MediaPlayer.OnCompletionListener {
         @Override
         public void onCompletion(MediaPlayer mp) {
-            Toast.makeText(SystemVideoPlayer.this,"播放完毕",Toast.LENGTH_SHORT).show();
+            Toast.makeText(SystemVideoPlayer.this, "播放完毕", Toast.LENGTH_SHORT).show();
             finish();
         }
     }
