@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
@@ -20,7 +21,6 @@ import com.xuchengpu.myproject.myproject.base.BaseFragment;
 import com.xuchengpu.myproject.myproject.bean.MediaItem;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by 许成谱 on 2017/1/6.
@@ -30,7 +30,7 @@ public class LocalVideoFragment extends BaseFragment {
     
     private ListView listview;
     private TextView tv_no_media;
-    private List<MediaItem> video;
+    private ArrayList<MediaItem> video;
     private LocalVideoAdapter adapter;
     private Handler handler=new Handler(){
         @Override
@@ -109,8 +109,14 @@ public class LocalVideoFragment extends BaseFragment {
 //            intent.setDataAndType(Uri.parse(media.getData()),"video/*");
 //            startActivity(intent);
             //2.调起自定义播放器
+          /*  Intent intent=new Intent(context,SystemVideoPlayer.class);
+            intent.setDataAndType(Uri.parse(media.getData()),"video*//*");
+            startActivity(intent);*/
             Intent intent=new Intent(context,SystemVideoPlayer.class);
-            intent.setDataAndType(Uri.parse(media.getData()),"video/*");
+            Bundle bundle=new Bundle();
+            bundle.putSerializable("videolist",video);
+            intent.putExtras(bundle);
+            intent.putExtra("position",position);
             startActivity(intent);
 
         }

@@ -20,9 +20,11 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.xuchengpu.myproject.R;
+import com.xuchengpu.myproject.myproject.bean.MediaItem;
 import com.xuchengpu.myproject.myproject.utils.Utils;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class SystemVideoPlayer extends Activity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
@@ -45,6 +47,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
     private Button btnNext;
     private Button btnSwichScreen;
     private Utils utils;
+    private ArrayList<MediaItem> video;
     private Handler handler=new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -60,9 +63,8 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
                     break;
             }
         }
-
-
     };
+    private int position;
 
     private String getSystemTime() {
         SimpleDateFormat format=new SimpleDateFormat("HH:mm:ss");
@@ -175,11 +177,21 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
     }
 
     private void setData() {
-        videoview.setVideoURI(uri);
+        if(video!=null&&video.size()>0) {
+           MediaItem mediaItem=video.get(position);
+            videoview.setVideoPath(mediaItem.getData());
+            tvName.setText(mediaItem.getName());
+        }else{
+            videoview.setVideoURI(uri);
+            tvName.setText(uri.toString());
+        }
+
     }
 
     private void getData() {
         uri = getIntent().getData();
+        video= (ArrayList<MediaItem>) getIntent().getSerializableExtra("videolist");
+        position=getIntent().getIntExtra("position",0);
     }
 
     @Override
