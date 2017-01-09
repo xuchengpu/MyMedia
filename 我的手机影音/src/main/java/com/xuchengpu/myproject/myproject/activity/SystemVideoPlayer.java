@@ -20,8 +20,7 @@ public class SystemVideoPlayer extends Activity {
         setContentView(R.layout.activity_system_video_player);
         videoview = (VideoView)findViewById(R.id.videoview);
         getData();
-        //设置视频加载的监听
-        setData();
+        //设置视频加载的监听        setData();
         setLinstener();
 
 
@@ -51,8 +50,7 @@ public class SystemVideoPlayer extends Activity {
 
     private class MyOnErrorListener implements MediaPlayer.OnErrorListener {
         @Override
-        public boolean onError(MediaPlayer mp, int what, int extra) {
-            Toast.makeText(SystemVideoPlayer.this,"播放出错",Toast.LENGTH_SHORT).show();
+        public boolean onError(MediaPlayer mp, int what, int extra) {            Toast.makeText(SystemVideoPlayer.this,"播放出错",Toast.LENGTH_SHORT).show();
             return false;
         }
     }
