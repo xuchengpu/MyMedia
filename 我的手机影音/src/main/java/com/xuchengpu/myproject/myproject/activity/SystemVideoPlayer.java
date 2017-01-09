@@ -1,6 +1,10 @@
 package com.xuchengpu.myproject.myproject.activity;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -37,7 +41,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
     private Button btnStartPause;
     private Button btnNext;
     private Button btnSwichScreen;
-    private Utils utils=new Utils();
+    private Utils utils;
     private Handler handler=new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -54,6 +58,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
         }
     };
     private final  static int PROGRESS=0;
+    private MyBatterReceiver receive;
 
 
     /**
@@ -134,9 +139,18 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_system_video_player);
         findViews();
+        initData();
         getData();
         setData();
         setLinstener();
+    }
+
+    private void initData() {
+        utils=new Utils();
+        IntentFilter filter=new IntentFilter();
+        filter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        receive=new MyBatterReceiver();
+        registerReceiver(receive,filter);
     }
 
     private void setLinstener() {
@@ -207,5 +221,35 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
             handler=null;
         }
         super.onDestroy();
+    }
+
+    private class MyBatterReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int level=intent.getIntExtra("level",0);
+            setBattery(level);
+        }
+    }
+
+    private void setBattery(int level) {
+        if(level<=0) {
+            ivBattery.setImageResource(R.drawable.ic_battery_0);
+        }else if(level<=10) {
+            ivBattery.setImageResource(R.drawable.ic_battery_10);
+        }else if(level<=20) {
+            ivBattery.setImageResource(R.drawable.ic_battery_20);
+        }else if(level<=40) {
+            ivBattery.setImageResource(R.drawable.ic_battery_40);
+        }else if(level<=60) {
+            ivBattery.setImageResource(R.drawable.ic_battery_60);
+        }else if(level<=80) {
+            ivBattery.setImageResource(R.drawable.ic_battery_80);
+        }else if(level<=100) {
+            ivBattery.setImageResource(R.drawable.ic_battery_100);
+        }else{
+            ivBattery.setImageResource(R.drawable.ic_battery_100);
+        }
+        
     }
 }
