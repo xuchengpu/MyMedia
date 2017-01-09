@@ -22,6 +22,9 @@ import android.widget.VideoView;
 import com.xuchengpu.myproject.R;
 import com.xuchengpu.myproject.myproject.utils.Utils;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class SystemVideoPlayer extends Activity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
     private VideoView videoview;
     private Uri uri;
@@ -51,12 +54,22 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
                     int currentPosition=videoview.getCurrentPosition();
                     tvCurrenttime.setText(utils.stringForTime(currentPosition));
                     seekbarVideo.setProgress(currentPosition);
+                    tvSystetime.setText(getSystemTime());
                     handler.removeMessages(PROGRESS);
                     handler.sendEmptyMessageDelayed(PROGRESS,1000);
                     break;
             }
         }
+
+
     };
+
+    private String getSystemTime() {
+        SimpleDateFormat format=new SimpleDateFormat("HH:mm:ss");
+        String systemTime=format.format(new Date());
+        return systemTime;
+    }
+
     private final  static int PROGRESS=0;
     private MyBatterReceiver receive;
 
