@@ -4,17 +4,19 @@ import android.app.Activity;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.MediaController;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.xuchengpu.myproject.R;
+import com.xuchengpu.myproject.myproject.utils.Utils;
 
 public class SystemVideoPlayer extends Activity implements View.OnClickListener {
     private VideoView videoview;
@@ -35,6 +37,24 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener 
     private Button btnStartPause;
     private Button btnNext;
     private Button btnSwichScreen;
+    private Utils utils=new Utils();
+    private Handler handler=new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case  PROGRESS:
+                    int currentPosition=videoview.getCurrentPosition();
+                    tvCurrenttime.setText(utils.stringForTime(currentPosition));
+                    seekbarVideo.setProgress(currentPosition);
+                    handler.removeMessages(PROGRESS);
+                    handler.sendEmptyMessageDelayed(PROGRESS,1000);
+                    break;
+            }
+        }
+    };
+    private final  static int PROGRESS=0;
+
 
     /**
      * Find the Views in the layout<br />
@@ -110,7 +130,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener 
         videoview.setOnCompletionListener(new MyOnCompletionListener());
         videoview.setOnErrorListener(new MyOnErrorListener());
         videoview.setOnPreparedListener(new MyOnPreparedListener());
-        videoview.setMediaController(new MediaController(this));
+       // videoview.setMediaController(new MediaController(this));
     }
 
     private void setData() {
@@ -124,6 +144,10 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener 
     private class MyOnPreparedListener implements MediaPlayer.OnPreparedListener {
         @Override
         public void onPrepared(MediaPlayer mp) {
+            int duration=videoview.getDuration();
+            tvDuration.setText(utils.stringForTime(duration));
+            seekbarVideo.setMax(duration);
+            handler.sendEmptyMessage(PROGRESS);
             videoview.start();
         }
     }
@@ -142,5 +166,14 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener 
             Toast.makeText(SystemVideoPlayer.this, "播放完毕", Toast.LENGTH_SHORT).show();
             finish();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if(handler!=null) {
+            handler.removeCallbacksAndMessages(null);
+            handler=null;
+        }
+        super.onDestroy();
     }
 }
