@@ -18,7 +18,7 @@ import android.widget.VideoView;
 import com.xuchengpu.myproject.R;
 import com.xuchengpu.myproject.myproject.utils.Utils;
 
-public class SystemVideoPlayer extends Activity implements View.OnClickListener {
+public class SystemVideoPlayer extends Activity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
     private VideoView videoview;
     private Uri uri;
     private LinearLayout llTop;
@@ -103,16 +103,29 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener 
         } else if ( v == btnSwichePlayer ) {
             // Handle clicks for btnSwichePlayer
         } else if ( v == btnExit ) {
+            finish();
             // Handle clicks for btnExit
         } else if ( v == btnPre ) {
             // Handle clicks for btnPre
         } else if ( v == btnStartPause ) {
             // Handle clicks for btnStartPause
+            startAndPause();
         } else if ( v == btnNext ) {
             // Handle clicks for btnNext
         } else if ( v == btnSwichScreen ) {
             // Handle clicks for btnSwichScreen
         }
+    }
+
+    private void startAndPause() {
+        if(videoview.isPlaying()) {
+            videoview.pause();
+            btnStartPause.setBackgroundResource(R.drawable.btn_start_selector);
+        }else{
+            videoview.start();
+            btnStartPause.setBackgroundResource(R.drawable.btn_pause_selector);
+        }
+
     }
 
 
@@ -130,6 +143,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener 
         videoview.setOnCompletionListener(new MyOnCompletionListener());
         videoview.setOnErrorListener(new MyOnErrorListener());
         videoview.setOnPreparedListener(new MyOnPreparedListener());
+        seekbarVideo.setOnSeekBarChangeListener(this);
        // videoview.setMediaController(new MediaController(this));
     }
 
@@ -139,6 +153,24 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener 
 
     private void getData() {
         uri = getIntent().getData();
+    }
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        if(fromUser) {
+            seekBar.setProgress(progress);
+            videoview.seekTo(progress);
+        }
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+
     }
 
     private class MyOnPreparedListener implements MediaPlayer.OnPreparedListener {
