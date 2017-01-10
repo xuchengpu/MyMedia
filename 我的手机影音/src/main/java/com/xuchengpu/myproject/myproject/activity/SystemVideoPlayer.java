@@ -10,6 +10,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.DisplayMetrics;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -17,11 +20,11 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import com.xuchengpu.myproject.R;
 import com.xuchengpu.myproject.myproject.bean.MediaItem;
 import com.xuchengpu.myproject.myproject.utils.Utils;
+import com.xuchengpu.myproject.myproject.view.VideoView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -48,6 +51,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
     private Button btnSwichScreen;
     private Utils utils;
     private ArrayList<MediaItem> video;
+    private static boolean isShowVideoController = true;
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -61,10 +65,24 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
                     handler.removeMessages(PROGRESS);
                     handler.sendEmptyMessageDelayed(PROGRESS, 1000);
                     break;
+                case HIDECONTROLLER:
+                    if (isShowVideoController) {
+                        hideVideoController();
+                    }
+
+                    break;
             }
         }
     };
     private int position;
+    private static final int HIDECONTROLLER = 1;
+    private int screenWidth;
+    private int screeHeight;
+    private boolean isFullScreen = false;
+    private  static  final  int SCREEN_FULL=0;
+    private static  final int SCREEN_DEFULT=1;
+    private int videoWidth=0;
+    private int videoHeight=0;
 
     private String getSystemTime() {
         SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
@@ -74,6 +92,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
 
     private final static int PROGRESS = 0;
     private MyBatterReceiver receive;
+    private GestureDetector detector;
 
 
     /**
@@ -135,10 +154,14 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
             // Handle clicks for btnNext
             setNextVideo();
         } else if (v == btnSwichScreen) {
+            if(isFullScreen) {
+                setVideoType(SCREEN_DEFULT);
+            }else {
+                setVideoType(SCREEN_FULL);
+            }
             // Handle clicks for btnSwichScreen
         }
     }
-
 
 
     private void startAndPause() {
@@ -164,12 +187,63 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
         setLinstener();
     }
 
+
     private void initData() {
         utils = new Utils();
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_CHANGED);
         receive = new MyBatterReceiver();
         registerReceiver(receive, filter);
+        detector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public void onLongPress(MotionEvent e) {
+                startAndPause();
+                super.onLongPress(e);
+            }
+
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                if(isFullScreen) {
+                    setVideoType(SCREEN_DEFULT);
+                }else {
+                    setVideoType(SCREEN_FULL);
+                }
+
+                return super.onDoubleTap(e);
+            }
+
+            @Override
+            public boolean onSingleTapConfirmed(MotionEvent e) {
+                if (isShowVideoController) {
+                    hideVideoController();
+                    handler.removeMessages(HIDECONTROLLER);
+                } else {
+                    showVideoController();
+                    handler.removeMessages(HIDECONTROLLER);
+                    handler.sendEmptyMessageDelayed(HIDECONTROLLER, 4000);
+                }
+                return super.onSingleTapConfirmed(e);
+            }
+        });
+        //得到屏幕的宽和高
+        DisplayMetrics outMetrics = new DisplayMetrics();
+        //得到屏幕参数类
+        getWindowManager().getDefaultDisplay().getMetrics(outMetrics);
+        //屏幕的宽和高
+        screenWidth = outMetrics.widthPixels;
+        screeHeight = outMetrics.heightPixels;
+    }
+
+    private void showVideoController() {
+        isShowVideoController = true;
+        llTop.setVisibility(View.VISIBLE);
+        llBottom.setVisibility(View.VISIBLE);
+    }
+
+    private void hideVideoController() {
+        isShowVideoController = false;
+        llTop.setVisibility(View.GONE);
+        llBottom.setVisibility(View.GONE);
     }
 
     private void setLinstener() {
@@ -208,22 +282,61 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
 
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
+        handler.removeMessages(HIDECONTROLLER);
 
     }
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
+        handler.sendEmptyMessageDelayed(HIDECONTROLLER, 4000);
 
     }
 
     private class MyOnPreparedListener implements MediaPlayer.OnPreparedListener {
         @Override
         public void onPrepared(MediaPlayer mp) {
+            videoWidth=mp.getVideoWidth();
+            videoHeight=mp.getVideoHeight();
+            setVideoType(SCREEN_DEFULT);
+
             int duration = videoview.getDuration();
             tvDuration.setText(utils.stringForTime(duration));
             seekbarVideo.setMax(duration);
             handler.sendEmptyMessage(PROGRESS);
             videoview.start();
+
+
+
+        }
+    }
+
+    private void setVideoType(int  type) {
+        switch (type) {
+            case SCREEN_FULL:
+                videoview.setVideoSize(screenWidth,screeHeight);
+                isFullScreen=true;
+                btnSwichScreen.setBackgroundResource(R.drawable.btn_screen_default_selector);
+                break;
+            case SCREEN_DEFULT:
+                isFullScreen=false;
+                int mVideoWidth = videoWidth;
+                int mVideoHeight = videoHeight;
+
+                int width = screenWidth;
+                int height = screeHeight;
+
+                if (mVideoWidth * height < width * mVideoHeight) {
+                    //Log.i("@@@", "image too wide, correcting");
+                    width = height * mVideoWidth / mVideoHeight;
+                } else if (mVideoWidth * height > width * mVideoHeight) {
+                    //Log.i("@@@", "image too tall, correcting");
+                    height = width * mVideoHeight / mVideoWidth;
+                }
+                videoview.setVideoSize(width,height);
+
+                btnSwichScreen.setBackgroundResource(R.drawable.btn_screen_full_selector);
+
+                break;
         }
     }
 
@@ -243,10 +356,11 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
             setNextVideo();
         }
     }
+
     private void setPreVideo() {
         if (video != null && video.size() > 0) {
             position--;
-            if (position >0) {
+            if (position > 0) {
                 MediaItem media = video.get(position);
                 videoview.setVideoPath(media.getData());
                 tvName.setText(media.getName());
@@ -257,7 +371,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
                 finish();
             }
 
-        } else if(uri!=null) {
+        } else if (uri != null) {
             finish();
         }
     }
@@ -272,11 +386,11 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
                 checkButtonStatus();
 
             } else {
-                position = video.size()-1;
+                position = video.size() - 1;
                 finish();
             }
 
-        } else if(uri!=null) {
+        } else if (uri != null) {
             finish();
         }
     }
@@ -284,26 +398,26 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
     private void checkButtonStatus() {
         setButtonEnable(true);
         if (video != null && video.size() > 0) {
-           if(position==0) {
-               btnPre.setEnabled(false);
-               btnPre.setBackgroundResource(R.drawable.btn_pre_gray);
-           }
-            if(position==video.size()-1) {
+            if (position == 0) {
+                btnPre.setEnabled(false);
+                btnPre.setBackgroundResource(R.drawable.btn_pre_gray);
+            }
+            if (position == video.size() - 1) {
                 btnNext.setEnabled(false);
                 btnNext.setBackgroundResource(R.drawable.btn_next_gray);
             }
 
-        } else if(uri!=null) {
+        } else if (uri != null) {
             setButtonEnable(false);
         }
 
     }
 
     private void setButtonEnable(boolean b) {
-        if(b) {
+        if (b) {
             btnPre.setBackgroundResource(R.drawable.btn_pre_selector);
             btnNext.setBackgroundResource(R.drawable.btn_next_selector);
-        }else{
+        } else {
             btnPre.setBackgroundResource(R.drawable.btn_pre_gray);
             btnNext.setBackgroundResource(R.drawable.btn_next_gray);
         }
@@ -349,5 +463,11 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
             ivBattery.setImageResource(R.drawable.ic_battery_100);
         }
 
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        detector.onTouchEvent(event);
+        return super.onTouchEvent(event);
     }
 }

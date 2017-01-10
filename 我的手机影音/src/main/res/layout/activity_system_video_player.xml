@@ -4,12 +4,16 @@
     android:id="@+id/activity_system_video_player"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center"
     tools:context="com.xuchengpu.myproject.myproject.activity.SystemVideoPlayer">
-    <VideoView
+
+    <com.xuchengpu.myproject.myproject.view.VideoView
         android:id="@+id/videoview"
+        android:layout_centerInParent="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <include layout="@layout/mediacontroller"/>
+    <include android:id="@+id/mediacontroller"
+        layout="@layout/mediacontroller"/>
 
 </RelativeLayout>
