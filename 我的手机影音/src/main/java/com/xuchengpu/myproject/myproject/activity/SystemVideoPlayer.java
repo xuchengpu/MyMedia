@@ -5,13 +5,16 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.GestureDetector;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -30,7 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class SystemVideoPlayer extends Activity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
+public class SystemVideoPlayer extends Activity implements View.OnClickListener {
     private VideoView videoview;
     private Uri uri;
     private LinearLayout llTop;
@@ -51,6 +54,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
     private Button btnSwichScreen;
     private Utils utils;
     private ArrayList<MediaItem> video;
+    private AudioManager am;
     private static boolean isShowVideoController = true;
     private Handler handler = new Handler() {
         @Override
@@ -83,24 +87,20 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
     private static  final int SCREEN_DEFULT=1;
     private int videoWidth=0;
     private int videoHeight=0;
+    private int currentVolume;
+    private int maxVollume;
+    private boolean isMute=false;
+    private final static int PROGRESS = 0;
+    private MyBatterReceiver receive;
+    private GestureDetector detector;
+
+
 
     private String getSystemTime() {
         SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
         String systemTime = format.format(new Date());
         return systemTime;
     }
-
-    private final static int PROGRESS = 0;
-    private MyBatterReceiver receive;
-    private GestureDetector detector;
-
-
-    /**
-     * Find the Views in the layout<br />
-     * <br />
-     * Auto-created on 2017-01-09 18:25:50 by Android Layout Finder
-     * (http://www.buzzingandroid.com/tools/android-layout-finder)
-     */
     private void findViews() {
         videoview = (VideoView) findViewById(R.id.videoview);
         llTop = (LinearLayout) findViewById(R.id.ll_top);
@@ -127,18 +127,20 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
         btnStartPause.setOnClickListener(this);
         btnNext.setOnClickListener(this);
         btnSwichScreen.setOnClickListener(this);
-    }
 
-    /**
-     * Handle button click events<br />
-     * <br />
-     * Auto-created on 2017-01-09 18:25:50 by Android Layout Finder
-     * (http://www.buzzingandroid.com/tools/android-layout-finder)
-     */
+        am= (AudioManager) getSystemService(AUDIO_SERVICE);
+        currentVolume=am.getStreamVolume(AudioManager.STREAM_MUSIC);
+        maxVollume=am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        seekbarVoice.setMax(maxVollume);
+        seekbarVoice.setProgress(currentVolume);
+
+    }
     @Override
     public void onClick(View v) {
         if (v == btnVoice) {
             // Handle clicks for btnVoice
+            isMute=!isMute;
+            updateVoice(currentVolume);
         } else if (v == btnSwichePlayer) {
             // Handle clicks for btnSwichePlayer
         } else if (v == btnExit) {
@@ -161,6 +163,22 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
             }
             // Handle clicks for btnSwichScreen
         }
+    }
+
+    private void updateVoice(int progress) {
+        if (isMute) {
+            am.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
+            seekbarVoice.setProgress(0);
+        } else {
+            //第一个参数：声音的类型
+            //第二个参数：声音的值：0~15
+            //第三个参数：1，显示系统调声音的；0，不显示
+            am.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
+            seekbarVoice.setProgress(progress);
+        }
+
+        currentVolume = progress;
+
     }
 
 
@@ -250,8 +268,64 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
         videoview.setOnCompletionListener(new MyOnCompletionListener());
         videoview.setOnErrorListener(new MyOnErrorListener());
         videoview.setOnPreparedListener(new MyOnPreparedListener());
-        seekbarVideo.setOnSeekBarChangeListener(this);
+        seekbarVideo.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    seekBar.setProgress(progress);
+                    videoview.seekTo(progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                handler.removeMessages(HIDECONTROLLER);
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                handler.sendEmptyMessageDelayed(HIDECONTROLLER, 4000);
+
+            }
+        });
+        seekbarVoice.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    updateVoiceProgress(progress);
+                }
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                handler.removeMessages(HIDECONTROLLER);
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+                handler.sendEmptyMessageDelayed(HIDECONTROLLER, 4000);
+
+            }
+        });
         // videoview.setMediaController(new MediaController(this));
+    }
+
+    private void updateVoiceProgress(int progress) {
+        am.setStreamVolume(AudioManager.STREAM_MUSIC,progress,0);
+        Log.e("tag","AudioManager.STREAM_MUSIC="+AudioManager.STREAM_MUSIC);
+        Log.e("tag","progress="+progress);
+        seekbarVoice.setProgress(progress);
+        if(progress<=0) {
+            isMute=true;
+        }else{
+            isMute=false;
+        }
+        currentVolume=progress;
+
     }
 
     private void setData() {
@@ -272,25 +346,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
         position = getIntent().getIntExtra("position", 0);
     }
 
-    @Override
-    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        if (fromUser) {
-            seekBar.setProgress(progress);
-            videoview.seekTo(progress);
-        }
-    }
 
-    @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
-        handler.removeMessages(HIDECONTROLLER);
-
-    }
-
-    @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
-        handler.sendEmptyMessageDelayed(HIDECONTROLLER, 4000);
-
-    }
 
     private class MyOnPreparedListener implements MediaPlayer.OnPreparedListener {
         @Override
@@ -464,10 +520,53 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener,
         }
 
     }
+    private float starty;
+    private int mVol;
+    private  int touchRang=0;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         detector.onTouchEvent(event);
-        return super.onTouchEvent(event);
+        switch (event.getAction()){
+            case MotionEvent.ACTION_DOWN:
+                starty=event.getY();
+                touchRang=Math.min(screeHeight,screenWidth);
+                mVol=am.getStreamVolume(AudioManager.STREAM_MUSIC);
+                handler.removeMessages(HIDECONTROLLER);
+                break;
+            case MotionEvent.ACTION_MOVE:
+                float endy=event.getY();
+                float distancey=starty-endy;
+                float delta=distancey/touchRang*maxVollume;
+                int volue = (int) Math.min(Math.max(mVol + delta,0),maxVollume);
+                if(delta!=0) {
+                    updateVoiceProgress(volue);
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                handler.sendEmptyMessageDelayed(HIDECONTROLLER,4000);
+                break;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+            case  KeyEvent.KEYCODE_VOLUME_DOWN:
+                currentVolume--;
+                updateVoiceProgress(currentVolume);
+                handler.removeMessages(HIDECONTROLLER);
+                handler.sendEmptyMessageDelayed(HIDECONTROLLER,4000);
+                break;
+            case  KeyEvent.KEYCODE_VOLUME_UP:
+                currentVolume++;
+                updateVoiceProgress(currentVolume);
+                handler.removeMessages(HIDECONTROLLER);
+                handler.sendEmptyMessageDelayed(HIDECONTROLLER,4000);
+
+                break;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 }
