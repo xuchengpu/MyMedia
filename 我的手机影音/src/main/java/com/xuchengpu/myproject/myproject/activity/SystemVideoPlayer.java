@@ -316,8 +316,8 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener 
 
     private void updateVoiceProgress(int progress) {
         am.setStreamVolume(AudioManager.STREAM_MUSIC,progress,0);
-        Log.e("tag","AudioManager.STREAM_MUSIC="+AudioManager.STREAM_MUSIC);
-        Log.e("tag","progress="+progress);
+       // Log.e("tag","AudioManager.STREAM_MUSIC="+AudioManager.STREAM_MUSIC);
+        //Log.e("tag","progress="+progress);
         seekbarVoice.setProgress(progress);
         if(progress<=0) {
             isMute=true;
@@ -333,7 +333,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener 
             MediaItem mediaItem = video.get(position);
             videoview.setVideoPath(mediaItem.getData());
             tvName.setText(mediaItem.getName());
-        } else {
+        } else if (uri != null) {
             videoview.setVideoURI(uri);
             tvName.setText(uri.toString());
         }
@@ -343,6 +343,7 @@ public class SystemVideoPlayer extends Activity implements View.OnClickListener 
     private void getData() {
         uri = getIntent().getData();
         video = (ArrayList<MediaItem>) getIntent().getSerializableExtra("videolist");
+        Log.e("tag","video="+video);
         position = getIntent().getIntExtra("position", 0);
     }
 

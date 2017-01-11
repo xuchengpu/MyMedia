@@ -37,7 +37,7 @@ public class LocalVideoFragment extends BaseFragment {
         public void handleMessage(Message msg) {
             if(video!=null&&video.size()>0) {
                 Log.e("tag",video+"=video");
-                adapter=new LocalVideoAdapter(context,video);
+                adapter=new LocalVideoAdapter(context,video, true);
                 listview.setAdapter(adapter);
                 tv_no_media.setVisibility(View.GONE);
             }else{

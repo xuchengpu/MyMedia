@@ -22,10 +22,12 @@ public class LocalVideoAdapter extends BaseAdapter {
     private Context context;
     private List<MediaItem> datas;
     private Utils utils=new Utils();
+    private boolean isvideo=false;
 
-    public LocalVideoAdapter(Context context, List<MediaItem> datas) {
+    public LocalVideoAdapter(Context context, List<MediaItem> datas, boolean b) {
         this.context = context;
         this.datas = datas;
+        this.isvideo=b;
     }
 
     @Override
@@ -59,10 +61,15 @@ public class LocalVideoAdapter extends BaseAdapter {
         }
         MediaItem media=datas.get(position);
 
-        holder.iv_icon.setImageResource(R.drawable.video_default_icon);
+
         holder.tv_name.setText(media.getName());
         holder.tv_duration.setText(utils.stringForTime((int) media.getDuration()));
         holder.tv_size.setText(Formatter.formatFileSize(context,media.getSize()));
+        if(isvideo) {
+            holder.iv_icon.setImageResource(R.drawable.video_default_icon);
+        }else {
+            holder.iv_icon.setImageResource(R.drawable.music_default_bg);
+        }
 
         return convertView;
     }

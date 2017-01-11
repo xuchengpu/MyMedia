@@ -21,12 +21,13 @@
         <activity
             android:name=".myproject.MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:launchMode="singleTask"></activity>
+            android:launchMode="singleTask" />
         <activity
             android:name=".myproject.activity.SystemVideoPlayer"
-            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            ></activity>
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+        <activity android:name=".myproject.activity.SystemAudioPlayer"></activity>
+        <service android:name="com.xuchengpu.myproject.myproject.service.MusicPlayerService"/>
     </application>
 
 </manifest>
