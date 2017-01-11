@@ -152,6 +152,18 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
         } else if ( v == btnAudioPre ) {
             // Handle clicks for btnAudioPre
         } else if ( v == btnAudioStartPause ) {
+            try {
+                if(service.isPlaying()) {
+                    service.pause();
+                    btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_start_selector);
+                }else{
+                    service.start();
+                    //按钮状态-设置暂停
+                    btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_pause_selector);
+                }
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
             // Handle clicks for btnAudioStartPause
         } else if ( v == btnAudioNext ) {
             // Handle clicks for btnAudioNext
