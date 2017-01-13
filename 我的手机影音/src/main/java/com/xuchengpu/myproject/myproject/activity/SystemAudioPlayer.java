@@ -21,8 +21,14 @@ import android.widget.TextView;
 
 import com.xuchengpu.myproject.IMusicPlayerService;
 import com.xuchengpu.myproject.R;
+import com.xuchengpu.myproject.myproject.bean.MediaItem;
 import com.xuchengpu.myproject.myproject.service.MusicPlayerService;
+import com.xuchengpu.myproject.myproject.utils.CacheUtils;
 import com.xuchengpu.myproject.myproject.utils.Utils;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 /**
  *
@@ -40,16 +46,23 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
     private Button btnSwichLyric;
     private IMusicPlayerService service;
     private int position;
-    private ServiceConnection conn=new ServiceConnection() {
+    private  int playMode=0;
+
+    private ServiceConnection conn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder iBinder) {
-            service=IMusicPlayerService.Stub.asInterface(iBinder);
-            if(service!=null) {
-                try {
-                    service.openAudio(position);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
+            service = IMusicPlayerService.Stub.asInterface(iBinder);
+            if (service != null) {
+                if(!notification) {
+                    try {
+                        service.openAudio(position);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }else{
+                    showViewData(null);
                 }
+
             }
         }
 
@@ -59,29 +72,30 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
         }
     };
     private MyReceiver receiver;
-    private Handler handler=new Handler(){
+    private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (msg.what) {
-                case  PROGRESS:
+                case PROGRESS:
                     try {
-                        int currentposition=service.getCurrentPosition();
-                        tvTime.setText(utils.stringForTime(currentposition)+"/"+utils.stringForTime(service.getDuration()));
+                        int currentposition = service.getCurrentPosition();
+                        tvTime.setText(utils.stringForTime(currentposition) + "/" + utils.stringForTime(service.getDuration()));
                         seekbarAudio.setProgress(currentposition);
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }
-                    handler.removeCallbacksAndMessages(null);
-                    handler.sendEmptyMessageDelayed(PROGRESS,1000);
+                    handler.removeMessages(PROGRESS);
+                    handler.sendEmptyMessageDelayed(PROGRESS, 1000);
 
                     break;
             }
 
         }
     };
-    private static  final int PROGRESS=1;
+    private static final int PROGRESS = 1;
     private Utils utils;
+    private boolean notification;
 
 
     /**
@@ -92,22 +106,22 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
      */
     private void findViews() {
         setContentView(R.layout.activity_system_audio_player);
-        ivIcon = (ImageView)findViewById( R.id.iv_icon );
-        tvArtist = (TextView)findViewById( R.id.tv_artist );
-        tvName = (TextView)findViewById( R.id.tv_name );
-        tvTime = (TextView)findViewById( R.id.tv_time );
-        seekbarAudio = (SeekBar)findViewById( R.id.seekbar_audio );
-        btnAudioPlaymode = (Button)findViewById( R.id.btn_audio_playmode );
-        btnAudioPre = (Button)findViewById( R.id.btn_audio_pre );
-        btnAudioStartPause = (Button)findViewById( R.id.btn_audio_start_pause );
-        btnAudioNext = (Button)findViewById( R.id.btn_audio_next );
-        btnSwichLyric = (Button)findViewById( R.id.btn_swich_lyric );
+        ivIcon = (ImageView) findViewById(R.id.iv_icon);
+        tvArtist = (TextView) findViewById(R.id.tv_artist);
+        tvName = (TextView) findViewById(R.id.tv_name);
+        tvTime = (TextView) findViewById(R.id.tv_time);
+        seekbarAudio = (SeekBar) findViewById(R.id.seekbar_audio);
+        btnAudioPlaymode = (Button) findViewById(R.id.btn_audio_playmode);
+        btnAudioPre = (Button) findViewById(R.id.btn_audio_pre);
+        btnAudioStartPause = (Button) findViewById(R.id.btn_audio_start_pause);
+        btnAudioNext = (Button) findViewById(R.id.btn_audio_next);
+        btnSwichLyric = (Button) findViewById(R.id.btn_swich_lyric);
 
-        btnAudioPlaymode.setOnClickListener( this );
-        btnAudioPre.setOnClickListener( this );
-        btnAudioStartPause.setOnClickListener( this );
-        btnAudioNext.setOnClickListener( this );
-        btnSwichLyric.setOnClickListener( this );
+        btnAudioPlaymode.setOnClickListener(this);
+        btnAudioPre.setOnClickListener(this);
+        btnAudioStartPause.setOnClickListener(this);
+        btnAudioNext.setOnClickListener(this);
+        btnSwichLyric.setOnClickListener(this);
         seekbarAudio.setOnSeekBarChangeListener(new MyOnSeekBarChangeListener());
 
         ivIcon.setBackgroundResource(R.drawable.animation_list);
@@ -115,11 +129,12 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
         background.start();
 
     }
-    class MyOnSeekBarChangeListener implements SeekBar.OnSeekBarChangeListener{
+
+    class MyOnSeekBarChangeListener implements SeekBar.OnSeekBarChangeListener {
 
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            if(fromUser) {
+            if (fromUser) {
                 try {
                     service.seekTo(progress);
                 } catch (RemoteException e) {
@@ -145,18 +160,27 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
      * Auto-created on 2017-01-11 18:54:55 by Android Layout Finder
      * (http://www.buzzingandroid.com/tools/android-layout-finder)
      */
+
+
+
     @Override
     public void onClick(View v) {
-        if ( v == btnAudioPlaymode ) {
+        if (v == btnAudioPlaymode) {
             // Handle clicks for btnAudioPlaymode
-        } else if ( v == btnAudioPre ) {
+            changePlayMode();
+        } else if (v == btnAudioPre) {
             // Handle clicks for btnAudioPre
-        } else if ( v == btnAudioStartPause ) {
             try {
-                if(service.isPlaying()) {
+                service.pre();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        } else if (v == btnAudioStartPause) {
+            try {
+                if (service.isPlaying()) {
                     service.pause();
                     btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_start_selector);
-                }else{
+                } else {
                     service.start();
                     //按钮状态-设置暂停
                     btnAudioStartPause.setBackgroundResource(R.drawable.btn_audio_pause_selector);
@@ -165,15 +189,58 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
                 e.printStackTrace();
             }
             // Handle clicks for btnAudioStartPause
-        } else if ( v == btnAudioNext ) {
+        } else if (v == btnAudioNext) {
             // Handle clicks for btnAudioNext
-        } else if ( v == btnSwichLyric ) {
+            try {
+                service.next();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        } else if (v == btnSwichLyric) {
+
             // Handle clicks for btnSwichLyric
         }
     }
 
+    private void changePlayMode() {
+        try {
+            playMode=service.getPlayMode();
+            if (playMode == MusicPlayerService.REPEAT_NOMAL) {
+                playMode = MusicPlayerService.REPEAT_SINGLE;
+            } else if (playMode == MusicPlayerService.REPEAT_SINGLE) {
+                playMode = MusicPlayerService.REPEAT_ALL;
+            } else if (playMode == MusicPlayerService.REPEAT_ALL) {
+                playMode = MusicPlayerService.REPEAT_NOMAL;
+            }else {
+                playMode = MusicPlayerService.REPEAT_ALL;
+            }
+            service.setPlayMode(playMode);
+            checkButtonStatu();
+
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+    private void checkButtonStatu() {
+
+        try {
+            playMode = service.getPlayMode();
+
+            if (playMode == MusicPlayerService.REPEAT_NOMAL) {
+                btnAudioPlaymode.setBackgroundResource(R.drawable.btn_audio_playmode_normal_selector);
+            } else if (playMode == MusicPlayerService.REPEAT_SINGLE) {
+                btnAudioPlaymode.setBackgroundResource(R.drawable.btn_audio_playmode_single_selector);
+            } else if (playMode == MusicPlayerService.REPEAT_ALL) {
+                btnAudioPlaymode.setBackgroundResource(R.drawable.btn_audio_playmode_all_selector);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
     /**
-     *
      * @param savedInstanceState
      */
     @Override
@@ -187,41 +254,53 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
     }
 
     private void initData() {
-       utils=new Utils();
-        receiver=new MyReceiver();
-        IntentFilter intentFilter=new IntentFilter();
+        utils = new Utils();
+        receiver = new MyReceiver();
+        IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(MusicPlayerService.OPEN_COMPLETE);
-        registerReceiver(receiver,intentFilter);
+        registerReceiver(receiver, intentFilter);
+        EventBus.getDefault().register(this);
 
     }
 
     private void getData() {
-        position = getIntent().getIntExtra("position", 0);
+        notification=getIntent().getBooleanExtra("notification",false);
+        if(!notification) {
+            position = getIntent().getIntExtra("position", 0);
+        }
+        int palymode=0;
+        palymode= CacheUtils.getPlayMode(this,"playmode");
+        if(palymode!=-1) {
+            playMode=palymode;
+        }
     }
 
     private void startAndBindServide() {
-        Intent intent=new Intent(this, MusicPlayerService.class);
-        bindService(intent,conn, Context.BIND_AUTO_CREATE);
+        Intent intent = new Intent(this, MusicPlayerService.class);
+        bindService(intent, conn, Context.BIND_AUTO_CREATE);
         startService(intent);
     }
 
 
-     class MyReceiver extends BroadcastReceiver {
-         @Override
-         public void onReceive(Context context, Intent intent) {
-             if(MusicPlayerService.OPEN_COMPLETE.equals(intent.getAction())){
+    class MyReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (MusicPlayerService.OPEN_COMPLETE.equals(intent.getAction())) {
 
-                 showViewData();
-             }
-         }
-     }
-
-    private void showViewData() {
+               // showViewData();
+            }
+        }
+    }
+    @Subscribe(threadMode=ThreadMode.MAIN)
+    public  void showViewData(MediaItem mediaitem) {
         try {
             tvName.setText(service.getAudioName());
             tvArtist.setText(service.getArtistName());
-            int duration=service.getDuration();
+            int duration = service.getDuration();
             seekbarAudio.setMax(duration);
+
+
+            checkButtonStatu();
             handler.sendEmptyMessage(PROGRESS);
         } catch (RemoteException e) {
             e.printStackTrace();
@@ -232,11 +311,16 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
 
     @Override
     protected void onDestroy() {
-        if(conn!=null) {
+        if(receiver!=null) {
+            unregisterReceiver(receiver);
+            receiver=null;
+        }
+        if (conn != null) {
             unbindService(conn);
-            conn=null;
+            conn = null;
         }
         handler.removeCallbacksAndMessages(null);
+        EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
 }

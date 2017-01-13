@@ -1,5 +1,8 @@
 package com.xuchengpu.myproject.myproject.service;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentResolver;
 import android.content.Intent;
@@ -14,7 +17,12 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.xuchengpu.myproject.IMusicPlayerService;
+import com.xuchengpu.myproject.R;
+import com.xuchengpu.myproject.myproject.activity.SystemAudioPlayer;
 import com.xuchengpu.myproject.myproject.bean.MediaItem;
+import com.xuchengpu.myproject.myproject.utils.CacheUtils;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,6 +35,12 @@ public class MusicPlayerService extends Service {
     private Uri uri;
     private ArrayList<MediaItem> audio;
     private int position;
+    private NotificationManager manager;
+    public  static final int REPEAT_NOMAL=0;
+    public static final int REPEAT_SINGLE=1;
+    public static final int REPEAT_ALL=2;
+    private  int playMode=0;
+
     IMusicPlayerService.Stub stub = new IMusicPlayerService.Stub() {
         MusicPlayerService service = MusicPlayerService.this;
 
@@ -105,15 +119,19 @@ public class MusicPlayerService extends Service {
     private MediaItem mediaitem;
     private MediaPlayer mediaPlayer;
     public static final String OPEN_COMPLETE = "open_complete";
+    private boolean isNext=false;
 
 
     @Override
     public void onCreate() {
         super.onCreate();
+
         getAudioData();
         Log.e("tag", "oncreate");
 
     }
+
+
 
     private void getAudioData() {
         new Thread() {
@@ -204,7 +222,9 @@ public class MusicPlayerService extends Service {
 
         @Override
         public void onPrepared(MediaPlayer mp) {
-            notifyChange(OPEN_COMPLETE);
+            //notifyChange(OPEN_COMPLETE);
+            EventBus.getDefault().post(mediaitem);
+            isNext=false;
             start();
 
         }
@@ -221,6 +241,7 @@ public class MusicPlayerService extends Service {
 
         @Override
         public void onCompletion(MediaPlayer mp) {
+            isNext=true;
             next();
 
         }
@@ -232,6 +253,23 @@ public class MusicPlayerService extends Service {
      */
     void start() {
         mediaPlayer.start();
+
+        manager= (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        Intent intent =new Intent(this, SystemAudioPlayer.class);
+        intent.putExtra("notification",true);
+        PendingIntent pi=PendingIntent.getActivity(this,1,intent,0);
+        Notification notification=null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+                     notification=new Notification.Builder(this)
+                    .setSmallIcon(R.drawable.notification_music_playing)
+                    .setContentTitle("321音乐")
+                    .setContentText("正在播放"+mediaitem.getName())
+                    .setContentIntent(pi)
+                    .build();
+            notification.flags=Notification.FLAG_ONGOING_EVENT;
+
+        }
+        manager.notify(1,notification);
     }
 
 
@@ -240,6 +278,7 @@ public class MusicPlayerService extends Service {
      */
     void pause() {
         mediaPlayer.pause();
+        manager.cancel(1);
     }
 
 
@@ -295,14 +334,116 @@ public class MusicPlayerService extends Service {
      * 播放下一首歌曲
      */
     void next() {
+
+        //设置下一曲对应的位置
+        setNextPostion();
+        //根据对应的位置去播放
+        openNextAudio();
     }
 
-    ;
+    private void openNextAudio() {
+        int playmode = getPlayMode();
+
+        if (playmode == MusicPlayerService.REPEAT_NOMAL) {
+
+            if (position <= audio.size() - 1) {
+                openAudio(position);
+            } else {
+                position = audio.size() - 1;
+            }
+
+        } else if (playmode == MusicPlayerService.REPEAT_SINGLE) {
+            openAudio(position);
+
+        } else if (playmode == MusicPlayerService.REPEAT_ALL) {
+            openAudio(position);
+        }
+    }
+
+    private void setNextPostion() {
+        int playmode = getPlayMode();
+
+        if (playmode == MusicPlayerService.REPEAT_NOMAL) {
+
+            position++;
+
+        } else if (playmode == MusicPlayerService.REPEAT_SINGLE) {
+            if(!isNext){
+                isNext = false;
+                position++;
+                if (position > audio.size() - 1) {
+                    position = 0;
+                }
+
+            }
+
+        } else if (playmode == MusicPlayerService.REPEAT_ALL) {
+            position++;
+            if (position > audio.size() - 1) {
+                position = 0;
+            }
+        }
+
+    }
+
 
     /**
      * 播放上一首歌曲
      */
     void pre() {
+        //设置下一曲对应的位置
+        setPrePostion();
+        //根据对应的位置去播放
+        openPreAudio();
+    }
+    private void setPrePostion() {
+        int playmode = getPlayMode();
+
+        if (playmode == MusicPlayerService.REPEAT_NOMAL) {
+            position--;
+        } else if (playmode == MusicPlayerService.REPEAT_SINGLE) {
+            if(!isNext){
+                isNext = false;
+                position--;
+                if (position < 0) {
+                    position = audio.size()-1;
+                }
+
+            }
+
+        } else if (playmode == MusicPlayerService.REPEAT_ALL) {
+            position--;
+            if (position < 0) {
+                position = audio.size()-1;
+            }
+        } else {
+            position--;
+        }
+    }
+
+    private void openPreAudio() {
+        int playmode = getPlayMode();
+
+        if (playmode == MusicPlayerService.REPEAT_NOMAL) {
+
+            if (position >= 0) {
+                openAudio(position);
+            } else {
+                position = 0;
+            }
+
+        } else if (playmode == MusicPlayerService.REPEAT_SINGLE) {
+            openAudio(position);
+
+        } else if (playmode == MusicPlayerService.REPEAT_ALL) {
+            openAudio(position);
+        } else {
+            if (position >= 0) {
+                openAudio(position);
+            } else {
+                position = 0;
+            }
+        }
     }
 
     ;
@@ -311,7 +452,7 @@ public class MusicPlayerService extends Service {
      * 得到播放模式
      */
     int getPlayMode() {
-        return 0;
+        return  CacheUtils.getPlayMode(this,"playmode");
     }
 
     ;
@@ -320,6 +461,7 @@ public class MusicPlayerService extends Service {
      * 设置播放模式
      */
     void setPlayMode(int mode) {
+        CacheUtils.setPlayMode(this,"playmode",mode);
 
     }
 

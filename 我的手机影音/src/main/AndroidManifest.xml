@@ -253,7 +253,8 @@
 
 
         </activity>
-        <activity android:name=".myproject.activity.SystemAudioPlayer"></activity>
+        <activity android:name=".myproject.activity.SystemAudioPlayer"
+            android:launchMode="singleTask"></activity>
 
         <!-- Don't forgot InitActivity -->
         <activity

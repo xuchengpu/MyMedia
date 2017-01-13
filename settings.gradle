@@ -1,1 +1,1 @@
-include ':我的手机影音', ':startallvideoplayer', '老师手机影音', ':vitamio', ':xutils', ':MaterialRefresh_library', ':vitamio-sample'
+include ':我的手机影音', ':startallvideoplayer', ':vitamio', ':xutils', ':MaterialRefresh_library', ':vitamio-sample', ':老师手机影音', ':EventBus'
