@@ -24,11 +24,15 @@ import com.xuchengpu.myproject.R;
 import com.xuchengpu.myproject.myproject.bean.MediaItem;
 import com.xuchengpu.myproject.myproject.service.MusicPlayerService;
 import com.xuchengpu.myproject.myproject.utils.CacheUtils;
+import com.xuchengpu.myproject.myproject.utils.LyricParaser;
 import com.xuchengpu.myproject.myproject.utils.Utils;
+import com.xuchengpu.myproject.myproject.view.LyricShow;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import java.io.File;
 
 /**
  *
@@ -47,6 +51,13 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
     private IMusicPlayerService service;
     private int position;
     private  int playMode=0;
+    private Utils utils;
+    private boolean notification;
+    private LyricShow tx_lyric;
+
+    private static final int PROGRESS = 1;
+    private static final int SHOW_LYRIC=2;
+
 
     private ServiceConnection conn = new ServiceConnection() {
         @Override
@@ -89,14 +100,23 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
                     handler.sendEmptyMessageDelayed(PROGRESS, 1000);
 
                     break;
+                case SHOW_LYRIC:
+                    try {
+                        int currentposition = service.getCurrentPosition();
+                        tx_lyric.setNextLyric(currentposition);
+
+                        handler.removeMessages(SHOW_LYRIC);
+                        handler.sendEmptyMessageDelayed(SHOW_LYRIC, 1000);
+
+
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                    break;
             }
 
         }
     };
-    private static final int PROGRESS = 1;
-    private Utils utils;
-    private boolean notification;
-
 
     /**
      * Find the Views in the layout<br />
@@ -116,6 +136,7 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
         btnAudioStartPause = (Button) findViewById(R.id.btn_audio_start_pause);
         btnAudioNext = (Button) findViewById(R.id.btn_audio_next);
         btnSwichLyric = (Button) findViewById(R.id.btn_swich_lyric);
+        tx_lyric = (LyricShow)findViewById(R.id.tx_lyric);
 
         btnAudioPlaymode.setOnClickListener(this);
         btnAudioPre.setOnClickListener(this);
@@ -147,7 +168,6 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
         public void onStartTrackingTouch(SeekBar seekBar) {
 
         }
-
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
 
@@ -160,8 +180,6 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
      * Auto-created on 2017-01-11 18:54:55 by Android Layout Finder
      * (http://www.buzzingandroid.com/tools/android-layout-finder)
      */
-
-
 
     @Override
     public void onClick(View v) {
@@ -298,10 +316,20 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
             tvArtist.setText(service.getArtistName());
             int duration = service.getDuration();
             seekbarAudio.setMax(duration);
-
-
             checkButtonStatu();
             handler.sendEmptyMessage(PROGRESS);
+            String path=service.getAudioPath();
+            path=path.substring(0,path.lastIndexOf("."));
+            File file=new File(path+".lrc");
+            if(!file.exists()) {
+                file=new File(path+".txt");
+            }
+            LyricParaser lyricParaser = new LyricParaser();
+            lyricParaser.readFile(file);
+            if(lyricParaser.isExistsLyric()) {
+                tx_lyric.setLyrics(lyricParaser.getLyricBeens());
+                handler.sendEmptyMessage(SHOW_LYRIC);
+            }
         } catch (RemoteException e) {
             e.printStackTrace();
         }
