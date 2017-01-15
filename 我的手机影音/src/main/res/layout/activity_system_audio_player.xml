@@ -6,14 +6,21 @@
     android:layout_height="match_parent"
     android:background="@drawable/base_bg"
     tools:context="com.xuchengpu.myproject.myproject.activity.SystemAudioPlayer">
+
     <RelativeLayout
         android:id="@+id/rl_top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <com.xuchengpu.myproject.myproject.view.BaseVisualizerView
+            android:id="@+id/baseVisualizerView"
+            android:layout_width="480dp"
+            android:layout_height="120dp"
+            android:layout_centerHorizontal="true" />
+
         <ImageView
             android:id="@+id/iv_icon"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:src="@drawable/now_playing_matrix_01" />
@@ -115,14 +122,15 @@
         </LinearLayout>
 
     </LinearLayout>
+
     <com.xuchengpu.myproject.myproject.view.LyricShow
         android:id="@+id/tx_lyric"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:textSize="16sp"
-        android:layout_below="@id/rl_top"
         android:layout_above="@id/ll_bottom"
+        android:layout_below="@id/rl_top"
         android:gravity="center"
-        android:textColor="#ffffff"/>
+        android:textColor="#ffffff"
+        android:textSize="16sp" />
 
 </RelativeLayout>

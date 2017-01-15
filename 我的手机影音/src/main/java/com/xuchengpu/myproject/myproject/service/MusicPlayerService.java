@@ -119,6 +119,11 @@ public class MusicPlayerService extends Service {
         public String getAudioPath() throws RemoteException {
             return mediaitem.getData();
         }
+
+        @Override
+        public int getAudioSessionId() throws RemoteException {
+            return mediaPlayer.getAudioSessionId();
+        }
     };
     private boolean isLoaded = false;
     private MediaItem mediaitem;

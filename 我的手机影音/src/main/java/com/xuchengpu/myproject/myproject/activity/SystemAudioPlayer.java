@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.drawable.AnimationDrawable;
+import android.media.audiofx.Visualizer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -26,6 +27,7 @@ import com.xuchengpu.myproject.myproject.service.MusicPlayerService;
 import com.xuchengpu.myproject.myproject.utils.CacheUtils;
 import com.xuchengpu.myproject.myproject.utils.LyricParaser;
 import com.xuchengpu.myproject.myproject.utils.Utils;
+import com.xuchengpu.myproject.myproject.view.BaseVisualizerView;
 import com.xuchengpu.myproject.myproject.view.LyricShow;
 
 import org.greenrobot.eventbus.EventBus;
@@ -50,13 +52,14 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
     private Button btnSwichLyric;
     private IMusicPlayerService service;
     private int position;
-    private  int playMode=0;
+    private int playMode = 0;
     private Utils utils;
     private boolean notification;
     private LyricShow tx_lyric;
+    private BaseVisualizerView baseVisualizerView;
 
     private static final int PROGRESS = 1;
-    private static final int SHOW_LYRIC=2;
+    private static final int SHOW_LYRIC = 2;
 
 
     private ServiceConnection conn = new ServiceConnection() {
@@ -64,13 +67,13 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
         public void onServiceConnected(ComponentName name, IBinder iBinder) {
             service = IMusicPlayerService.Stub.asInterface(iBinder);
             if (service != null) {
-                if(!notification) {
+                if (!notification) {
                     try {
                         service.openAudio(position);
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }
-                }else{
+                } else {
                     showViewData(null);
                 }
 
@@ -106,7 +109,7 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
                         tx_lyric.setNextLyric(currentposition);
 
                         handler.removeMessages(SHOW_LYRIC);
-                        handler.sendEmptyMessageDelayed(SHOW_LYRIC, 1000);
+                        handler.sendEmptyMessageDelayed(SHOW_LYRIC, 100);
 
 
                     } catch (RemoteException e) {
@@ -117,6 +120,7 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
 
         }
     };
+    private Visualizer mVisualizer;
 
     /**
      * Find the Views in the layout<br />
@@ -136,7 +140,8 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
         btnAudioStartPause = (Button) findViewById(R.id.btn_audio_start_pause);
         btnAudioNext = (Button) findViewById(R.id.btn_audio_next);
         btnSwichLyric = (Button) findViewById(R.id.btn_swich_lyric);
-        tx_lyric = (LyricShow)findViewById(R.id.tx_lyric);
+        tx_lyric = (LyricShow) findViewById(R.id.tx_lyric);
+        baseVisualizerView = (BaseVisualizerView) findViewById(R.id.baseVisualizerView);
 
         btnAudioPlaymode.setOnClickListener(this);
         btnAudioPre.setOnClickListener(this);
@@ -168,6 +173,7 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
         public void onStartTrackingTouch(SeekBar seekBar) {
 
         }
+
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
 
@@ -222,14 +228,14 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
 
     private void changePlayMode() {
         try {
-            playMode=service.getPlayMode();
+            playMode = service.getPlayMode();
             if (playMode == MusicPlayerService.REPEAT_NOMAL) {
                 playMode = MusicPlayerService.REPEAT_SINGLE;
             } else if (playMode == MusicPlayerService.REPEAT_SINGLE) {
                 playMode = MusicPlayerService.REPEAT_ALL;
             } else if (playMode == MusicPlayerService.REPEAT_ALL) {
                 playMode = MusicPlayerService.REPEAT_NOMAL;
-            }else {
+            } else {
                 playMode = MusicPlayerService.REPEAT_ALL;
             }
             service.setPlayMode(playMode);
@@ -239,6 +245,7 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
             e.printStackTrace();
         }
     }
+
     private void checkButtonStatu() {
 
         try {
@@ -282,14 +289,14 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
     }
 
     private void getData() {
-        notification=getIntent().getBooleanExtra("notification",false);
-        if(!notification) {
+        notification = getIntent().getBooleanExtra("notification", false);
+        if (!notification) {
             position = getIntent().getIntExtra("position", 0);
         }
-        int palymode=0;
-        palymode= CacheUtils.getPlayMode(this,"playmode");
-        if(palymode!=-1) {
-            playMode=palymode;
+        int palymode = 0;
+        palymode = CacheUtils.getPlayMode(this, "playmode");
+        if (palymode != -1) {
+            playMode = palymode;
         }
     }
 
@@ -305,12 +312,31 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
         public void onReceive(Context context, Intent intent) {
             if (MusicPlayerService.OPEN_COMPLETE.equals(intent.getAction())) {
 
-               // showViewData();
+                // showViewData();
             }
         }
     }
-    @Subscribe(threadMode=ThreadMode.MAIN)
-    public  void showViewData(MediaItem mediaitem) {
+
+    private void setupVisualizerFxAndUi() {
+
+        int audioSessionid = 0;
+        try {
+            audioSessionid = service.getAudioSessionId();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        System.out.println("audioSessionid==" + audioSessionid);
+        mVisualizer = new Visualizer(audioSessionid);
+        // 参数内必须是2的位数
+        mVisualizer.setCaptureSize(Visualizer.getCaptureSizeRange()[1]);
+        // 设置允许波形表示，并且捕获它
+        baseVisualizerView.setVisualizer(mVisualizer);
+        mVisualizer.setEnabled(true);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void showViewData(MediaItem mediaitem) {
+        setupVisualizerFxAndUi();
         try {
             tvName.setText(service.getAudioName());
             tvArtist.setText(service.getArtistName());
@@ -318,15 +344,15 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
             seekbarAudio.setMax(duration);
             checkButtonStatu();
             handler.sendEmptyMessage(PROGRESS);
-            String path=service.getAudioPath();
-            path=path.substring(0,path.lastIndexOf("."));
-            File file=new File(path+".lrc");
-            if(!file.exists()) {
-                file=new File(path+".txt");
+            String path = service.getAudioPath();
+            path = path.substring(0, path.lastIndexOf("."));
+            File file = new File(path + ".lrc");
+            if (!file.exists()) {
+                file = new File(path + ".txt");
             }
             LyricParaser lyricParaser = new LyricParaser();
             lyricParaser.readFile(file);
-            if(lyricParaser.isExistsLyric()) {
+            if (lyricParaser.isExistsLyric()) {
                 tx_lyric.setLyrics(lyricParaser.getLyricBeens());
                 handler.sendEmptyMessage(SHOW_LYRIC);
             }
@@ -336,12 +362,20 @@ public class SystemAudioPlayer extends AppCompatActivity implements View.OnClick
 
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (isFinishing()) {
+            mVisualizer.release();
+
+        }
+    }
 
     @Override
     protected void onDestroy() {
-        if(receiver!=null) {
+        if (receiver != null) {
             unregisterReceiver(receiver);
-            receiver=null;
+            receiver = null;
         }
         if (conn != null) {
             unbindService(conn);
