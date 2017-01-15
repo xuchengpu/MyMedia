@@ -33,7 +33,7 @@
             android:name=".myproject.activity.SystemVideoPlayer"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/player_name"
-            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+            android:theme="@style/noAnimation_Theme"
             android:screenOrientation="landscape"
             >
             <intent-filter>
@@ -264,6 +264,11 @@
             android:launchMode="singleTop"
             android:theme="@android:style/Theme.NoTitleBar"
             android:windowSoftInputMode="stateAlwaysHidden" />
+
+        <activity android:name=".myproject.activity.VitamioVideoPlayer"
+            android:label="@string/player_name"
+            android:theme="@style/noAnimation_Theme"
+            android:screenOrientation="landscape"/>
         <service android:name="com.xuchengpu.myproject.myproject.service.MusicPlayerService"/>
     </application>
 

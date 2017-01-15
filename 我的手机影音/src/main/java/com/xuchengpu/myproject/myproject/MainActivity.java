@@ -1,11 +1,14 @@
 package com.xuchengpu.myproject.myproject;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.view.KeyEvent;
 import android.widget.FrameLayout;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 
 import com.xuchengpu.myproject.R;
 import com.xuchengpu.myproject.myproject.base.BaseFragment;
@@ -102,5 +105,26 @@ public class MainActivity extends AppCompatActivity {
         fragments.add(new NetAudioFragment());
         fragments.add(new NetVideoFragment());
     }
-
+    private boolean isExist=false;
+    private Handler handler=new Handler();
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode==KeyEvent.KEYCODE_BACK) {
+            if(position!=0) {
+                rg_main.check(rb_local_video);
+                return  true;
+            }else if(!isExist){
+                isExist=true;
+                Toast.makeText(MainActivity.this,"再按一次退出",Toast.LENGTH_SHORT).show();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                    isExist=false;
+                    }
+                },2000);
+                return  true;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
 }
