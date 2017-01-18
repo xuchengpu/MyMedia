@@ -29,4 +29,6 @@ dependencies {
     compile project(':vitamio')
     compile project(':EventBus')
     compile project(':xutils')
+    compile project(':Android-MaterialRefreshLayout-master-library')
+    compile files('libs/glide-3.7.0.jar')
 }

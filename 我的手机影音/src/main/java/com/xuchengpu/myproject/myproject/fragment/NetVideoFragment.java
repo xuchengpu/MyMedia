@@ -2,17 +2,21 @@ package com.xuchengpu.myproject.myproject.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.cjj.MaterialRefreshLayout;
+import com.cjj.MaterialRefreshListener;
 import com.xuchengpu.myproject.R;
 import com.xuchengpu.myproject.myproject.activity.SystemVideoPlayer;
 import com.xuchengpu.myproject.myproject.adapter.NetVideoAdapter;
 import com.xuchengpu.myproject.myproject.base.BaseFragment;
 import com.xuchengpu.myproject.myproject.bean.MediaItem;
+import com.xuchengpu.myproject.myproject.utils.CacheUtils;
 import com.xuchengpu.myproject.myproject.utils.Constant;
 
 import org.json.JSONArray;
@@ -39,14 +43,39 @@ public class NetVideoFragment extends BaseFragment {
     private TextView tv_no_media;
     private NetVideoAdapter adapter;
 
+    @ViewInject(R.id.refresh)
+    MaterialRefreshLayout refreshLayout;
+
 
     @Override
     public View initView() {
         View view =View.inflate(context, R.layout.fragment_net_video,null);
         x.view().inject(NetVideoFragment.this,view);
         listview.setOnItemClickListener(new myOnItemClickListener());
+        refreshLayout.setMaterialRefreshListener(new MyMaterialRefreshListener());
+
         return view;
     }
+
+
+    class MyMaterialRefreshListener extends MaterialRefreshListener{
+
+        @Override
+        public void onRefresh(MaterialRefreshLayout materialRefreshLayout) {
+            isLoadMore=false;
+            getDataFromNet();
+
+        }
+
+        @Override
+        public void onRefreshLoadMore(MaterialRefreshLayout materialRefreshLayout) {
+            super.onRefreshLoadMore(materialRefreshLayout);
+            isLoadMore=true;
+            getDataFromNet();
+        }
+    }
+
+
     private class myOnItemClickListener implements android.widget.AdapterView.OnItemClickListener {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -65,17 +94,31 @@ public class NetVideoFragment extends BaseFragment {
     @Override
     public void initData() {
         super.initData();
+        String json = CacheUtils.getString(context,Constant.NET_URL);
+        if(!TextUtils.isEmpty(json)){
+            processData(json);
+        }
         getDataFromNet();
 
     }
-
+    private boolean isLoadMore=false;
     private void getDataFromNet() {
         RequestParams params=new RequestParams(Constant.NET_URL);
         x.http().get(params, new Callback.CommonCallback<String>() {
             @Override
             public void onSuccess(String result) {
                 Log.e("tag","xUtils3联网请求成功=="+result);
+                CacheUtils.putString(context,Constant.NET_URL,result);
                 processData(result);
+                if(!isLoadMore) {
+                    refreshLayout.finishRefresh();
+                }else{
+
+                    refreshLayout.finishRefreshLoadMore();
+                }
+
+
+
             }
 
             @Override
@@ -96,17 +139,24 @@ public class NetVideoFragment extends BaseFragment {
     }
 
     private void processData(String json) {
-        mediaItems =parsedJson(json);
-        if(mediaItems != null && mediaItems.size() >0){
-            //有数据
-            tv_no_media.setVisibility(View.GONE);
-            adapter = new NetVideoAdapter(context,mediaItems);
-            //设置适配器
-            listview.setAdapter(adapter);
+        if(!isLoadMore) {
+            mediaItems =parsedJson(json);
+            if(mediaItems != null && mediaItems.size() >0){
+                //有数据
+                tv_no_media.setVisibility(View.GONE);
+                adapter = new NetVideoAdapter(context,mediaItems);
+                //设置适配器
+                listview.setAdapter(adapter);
 
+            }else{
+                tv_no_media.setVisibility(View.VISIBLE);
+            }
         }else{
-            tv_no_media.setVisibility(View.VISIBLE);
+            ArrayList<MediaItem> mediaItem =parsedJson(json);
+            mediaItems.addAll(mediaItem);
+            adapter.notifyDataSetChanged();
         }
+
 
     }
 

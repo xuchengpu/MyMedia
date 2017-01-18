@@ -7,13 +7,13 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.xuchengpu.myproject.R;
 import com.xuchengpu.myproject.myproject.bean.MediaItem;
 import com.xuchengpu.myproject.myproject.utils.Utils;
 
 import org.xutils.common.util.DensityUtil;
 import org.xutils.image.ImageOptions;
-import org.xutils.x;
 
 import java.util.ArrayList;
 
@@ -65,7 +65,7 @@ public class NetVideoAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
         if(convertView==null) {
-            convertView=View.inflate(context, R.layout.item_local_video,null);
+            convertView=View.inflate(context, R.layout.item_net_video,null);
             holder=new ViewHolder();
             holder.iv_icon= (ImageView) convertView.findViewById(R.id.iv_icon);
             holder.tv_name= (TextView) convertView.findViewById(R.id.tv_name);
@@ -82,8 +82,12 @@ public class NetVideoAdapter extends BaseAdapter {
         holder.tv_duration.setText(media.getDuration()+"秒");
         holder.tv_size.setText(media.getDesc());
 
-        x.image().bind(holder.iv_icon,media.getImageUrl(),imageOptions);
-
+       // x.image().bind(holder.iv_icon,media.getImageUrl(),imageOptions);
+        Glide.with(context)
+                .load(media.getImageUrl())
+                .placeholder(R.drawable.video_default)
+                .error(R.drawable.video_default)
+                .into(holder.iv_icon);
 
         return convertView;
     }

@@ -557,7 +557,7 @@ public class VitamioVideoPlayer extends Activity implements View.OnClickListener
                 tvName.setText(media.getName());
                 checkButtonStatus();
                 ll_loading.setVisibility(View.VISIBLE);
-                isUrl=utils.isUrl(uri.toString());
+                isUrl=utils.isUrl(media.getData());
 
             } else {
                 position = 0;
@@ -578,7 +578,7 @@ public class VitamioVideoPlayer extends Activity implements View.OnClickListener
                 tvName.setText(media.getName());
                 checkButtonStatus();
                 ll_loading.setVisibility(View.VISIBLE);
-                isUrl=utils.isUrl(uri.toString());
+                isUrl=utils.isUrl(media.getData());
 
             } else {
                 position = video.size() - 1;
