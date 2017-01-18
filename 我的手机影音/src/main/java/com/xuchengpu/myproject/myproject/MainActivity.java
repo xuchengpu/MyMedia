@@ -16,6 +16,7 @@ import com.xuchengpu.myproject.myproject.fragment.LocalAudioFragment;
 import com.xuchengpu.myproject.myproject.fragment.LocalVideoFragment;
 import com.xuchengpu.myproject.myproject.fragment.NetAudioFragment;
 import com.xuchengpu.myproject.myproject.fragment.NetVideoFragment;
+import com.xuchengpu.myproject.myproject.fragment.RecyclerViewFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +69,10 @@ public class MainActivity extends AppCompatActivity {
                         position = 3;
 
                         break;
+                    case R.id.rb_recyclerview:
+                        position = 4;
+
+                        break;
                 }
                 Fragment currentFragment = fragments.get(position);
                 toCurrentFragment(currentFragment);
@@ -104,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
         fragments.add(new LocalAudioFragment());
         fragments.add(new NetAudioFragment());
         fragments.add(new NetVideoFragment());
+        fragments.add(new RecyclerViewFragment());
     }
     private boolean isExist=false;
     private Handler handler=new Handler();

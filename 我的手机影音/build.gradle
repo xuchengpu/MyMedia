@@ -31,4 +31,9 @@ dependencies {
     compile project(':xutils')
     compile project(':Android-MaterialRefreshLayout-master-library')
     compile files('libs/glide-3.7.0.jar')
+    compile 'com.android.support:recyclerview-v7:25.1.0'
+    compile 'com.jakewharton:butterknife:5.1.1'
+    compile 'com.google.code.gson:gson:2.2.4'
+    compile project(':jcvideoplayer-lib')
+    compile project(':PhotoView_library')
 }
