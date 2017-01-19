@@ -36,4 +36,6 @@ dependencies {
     compile 'com.google.code.gson:gson:2.2.4'
     compile project(':jcvideoplayer-lib')
     compile project(':PhotoView_library')
+    compile files('libs/Msc.jar')
+    compile files('libs/Sunflower.jar')
 }

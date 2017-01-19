@@ -1,6 +1,7 @@
 package com.xuchengpu.myproject.myproject.view;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.xuchengpu.myproject.R;
+import com.xuchengpu.myproject.myproject.activity.SearchActivity;
 
 /**
  * Created by 许成谱 on 2017/1/6.
@@ -48,6 +50,8 @@ public class TitleBarView extends LinearLayout implements View.OnClickListener {
                 break;
             case  R.id.tv_search:
                 Toast.makeText(mcontext,"搜索",Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(mcontext, SearchActivity.class);
+                mcontext.startActivity(intent);
                 break;
         }
     }

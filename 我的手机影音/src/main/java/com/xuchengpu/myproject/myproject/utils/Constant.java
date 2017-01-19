@@ -6,6 +6,8 @@ package com.xuchengpu.myproject.myproject.utils;
 
 public class Constant {
     public static final String NET_URL = "http://api.m.mtime.cn/PageSubArea/TrailerList.api";
+    public static final String NET_SEARCH_URL = "http://hot.news.cntv.cn/index.php?controller=list&action=searchList&sort=date&n=20&wd=";
+
     /**
      * 网络音乐地址
      */
